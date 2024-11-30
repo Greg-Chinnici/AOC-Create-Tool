@@ -40,8 +40,9 @@ fn create_main(days: &[u32]) -> Result<(),Error>
             format!("println!(Day {} Part 1: {{}}, part1(include_str!(\"day{:02}/input.txt\")));\nprintln!(Day {} Part 2: {{}}, part2(include_str!(\"day{:02}/input.txt\")));",d,d,d,d)
         }).collect();
     
-        // Write the entire main.rs file
-    main_file.write_all(format!("// Advent of Code 2024 \n {} {} \n fn main() {{ \n println!(\"Advent of Code 2024\"); \n }} \n {}", modules, uses, tests).as_bytes())?;
+    // Write the entire main.rs file
+    main_file.write_all(format!("// Advent of Code 2024 \n{} \n{} \nfn main() {{ \n\tprintln!(\"Advent of Code 2024\"); \n }} \n{}",
+        modules, uses, tests).as_bytes())?;
 
     // Return Ok if successful
     Ok(())
@@ -62,6 +63,7 @@ fn setup_entire_project() -> Result<(),Error>
     cargo_file.write_all(b"[package] \n name = \"advent-of-code-2024\" \n version = \"0.1.0\" \n edition = \"2021\" \n [dependencies]")?;
 
     println!("Advent of Code 2024 project structure created!");
+    println!("just delete the exe");
     println!("START CODING");
     Ok(())
 }
