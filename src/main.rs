@@ -31,17 +31,16 @@ fn generate_mod_contents(day:u32) -> String {
     let start = format!("use crate::utils; \n//PROMPT: https://adventofcode.com/2024/day/{} \n" , day);
     let mods = format!("mod part1; \n mod part2; \n");
     let function_body = format!("
-     let part1_result = part1::solve(include_str!(\"input.txt\"));
-     let part2_result = part2::solve(include_str!(\"input.txt\"));
-     format!(\"Day {{}} Solutions:\n  Part 1: {{}}\n  Part 2: {{}}\", {}, part1_result, part2_result)
-     ", day);
+     let part1_result = part1::solve(utils::GetLines(include_str!(\"input.txt\")));
+     let part2_result = part2::solve(utils::GetLines(include_str!(\"input.txt\")));
+     format!(\"Day {{}} Solutions:\\n Part 1: {{}}\\n  Part 2: {{}}\", {}, part1_result, part2_result)\n", day);
     let generic_solve = format!("pub fn solve()->String {{ {} }}", function_body);
 
     format!("{} \n {} \n {}", start, mods, generic_solve)
 }
 
 fn generate_part_contents() -> String {
-    format!("use crate::utils; \npub fn solve(input: &str) -> String{{ \"unsolved\" }}")
+    format!("use crate::utils; \npub fn solve(input: Vec<&str>) -> String{{ \"unsolved\".to_owned() }}")
 }
 
 fn create_main(days: &[u32]) -> Result<(),Error> {
@@ -52,7 +51,7 @@ fn create_main(days: &[u32]) -> Result<(),Error> {
     main_file.write_all(format!("// Advent of Code 2024 \npub mod utils; \nmod days; \n \nfn main() {{ \n\tprintln!(\"Advent of Code 2024\");  \n\tprintln!(\"{{}}\", days::d1_solve());\n }} \n").as_bytes())?;
 
     // Return Ok if successful
-    create_file("src/utils.rs" , "")?;
+    create_file("src/utils.rs" , "pub fn GetLines(file_contents: &str)-> Vec<&str> { file_contents.lines().collect()}")?;
 
 
     Ok(())
@@ -61,7 +60,7 @@ fn create_main(days: &[u32]) -> Result<(),Error> {
 fn create_days_module(days: &[u32]) -> Result<(),Error> {
 
     let content: Vec<String>= days.iter()
-        .map(|&day| {format!("pub mod day{};\npub mod use day{}::solve as d{}_solve;\n",day,day,day)})
+        .map(|&day| {format!("pub mod day{:02};\npub use day{:02}::solve as d{}_solve;\n",day,day,day)})
         .collect();
 
     //Shoot me in the head
