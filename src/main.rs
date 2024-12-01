@@ -31,8 +31,8 @@ fn generate_mod_contents(day:u32) -> String {
     let start = format!("use crate::utils; \n//PROMPT: https://adventofcode.com/2024/day/{} \n" , day);
     let mods = format!("mod part1; \n mod part2; \n");
     let function_body = format!("
-     let part1_result = part1::solve(input);
-     let part2_result = part2::solve(input);
+     let part1_result = part1::solve(include_str!(\"input.txt\"));
+     let part2_result = part2::solve(include_str!(\"input.txt\"));
      format!(\"Day {{}} Solutions:\n  Part 1: {{}}\n  Part 2: {{}}\", {}, part1_result, part2_result)
      ", day);
     let generic_solve = format!("pub fn solve()->String {{ {} }}", function_body);
@@ -47,27 +47,28 @@ fn generate_part_contents() -> String {
 fn create_main(days: &[u32]) -> Result<(),Error> {
     let mut main_file= File::create("src/main.rs")?;
 
-    let modules: String= days.iter()
-        .map(|&d| format!("mod day{:02};\n" , d))
-        .collect();
-    let uses: String = days.iter()
-        .map(|&d| format!("use day{:02}::{{part1,part2}};\n" , d))
-        .collect();
-
-    let tests: String= days.iter()
-        .map(|&d| {
-            format!("println!(Day {} Part 1: {{}}, part1(include_str!(\"day{:02}/input.txt\")));\nprintln!(Day {} Part 2: {{}}, part2(include_str!(\"day{:02}/input.txt\")));",d,d,d,d)
-        })
-        .collect();
-    
+   
     // Write the entire main.rs file
-    main_file.write_all(format!("// Advent of Code 2024 \npub mod utils; \n{} \n{} \nfn main() {{ \n\tprintln!(\"Advent of Code 2024\"); \n }} \n{}",
-        modules, uses, tests).as_bytes())?;
+    main_file.write_all(format!("// Advent of Code 2024 \npub mod utils; \nmod days; \n \nfn main() {{ \n\tprintln!(\"Advent of Code 2024\");  \n\tprintln!(\"{{}}\", days::d1_solve());\n }} \n").as_bytes())?;
 
     // Return Ok if successful
     create_file("src/utils.rs" , "")?;
 
 
+    Ok(())
+}
+
+fn create_days_module(days: &[u32]) -> Result<(),Error> {
+
+    let content: Vec<String>= days.iter()
+        .map(|&day| {format!("pub mod day{};\npub mod use day{}::solve as d{}_solve;\n",day,day,day)})
+        .collect();
+
+    //Shoot me in the head
+    let m = content.join("");
+    let n =m.as_str();
+    
+    create_file("src/days/mod.rs", n)?;
     Ok(())
 }
 
@@ -81,6 +82,7 @@ fn setup_entire_project() -> Result<(),Error> {
     }
 
     create_main(&days)?;
+    create_days_module(&days)?;
     create_file("Cargo.toml" , "[package] \n name = \"advent-of-code-2024\" \n version = \"0.1.0\" \n edition = \"2021\" \n [dependencies]")?;
     
     println!("Advent of Code 2024 project structure created!");
